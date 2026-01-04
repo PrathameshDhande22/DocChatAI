@@ -3,9 +3,13 @@ name = "docchatai"
 version = "0.1.0"
 requires-python = ">=3.12"
 dependencies = [
+    "cryptography>=46.0.3",
     "langchain>=1.2.0",
     "langchain-community>=0.4.1",
     "langchain-google-genai>=4.1.2",
+    "langchain-text-splitters>=1.1.0",
+    "pypdf>=6.5.0",
+    "rapidocr-onnxruntime>=1.4.4",
     "sentence-transformers>=5.2.0",
     "streamlit>=1.52.2",
     "transformers>=4.57.3",
