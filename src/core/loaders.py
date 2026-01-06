@@ -22,13 +22,12 @@ async def load_and_split_pdfs(tempfile_path: list[str]) -> list[Document]:
         return documents
 
     except Exception as e:
-        print(e)
-        return []
+        raise e
 
 
-def split_documents(documents: Iterable[Document]):
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=20)
-    print(text_splitter.split_documents(documents))
+def split_documents(documents: Iterable[Document]) -> list[Document]:
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1200, chunk_overlap=200)
+    return text_splitter.split_documents(documents)
 
 
 def savefile_to_temp(docs: list[UploadedFile]) -> list[str]:

@@ -1,8 +1,8 @@
 import asyncio
 import streamlit as st
 from streamlit.runtime.uploaded_file_manager import UploadedFile
-from sympy import true
 from about import show_info
+from core.embeddings import get_embedding_model
 from ui.pdfload import processdocs
 from utils import initialize_session
 
@@ -48,5 +48,8 @@ with st.sidebar:
             icon=":material/network_intelligence:",
             on_click=onprocessclick,
             args=(fileuploaded,),
-            # disabled=st.session_state.processing,
+            disabled=st.session_state.processing,
         )
+
+if st.button("lcick"):
+    print(get_embedding_model().embed_query("my name is prathamesh"))

@@ -1,0 +1,11 @@
+from langchain_huggingface import HuggingFaceEmbeddings
+from langchain.embeddings.base import Embeddings
+
+
+def get_embedding_model() -> Embeddings:
+    return HuggingFaceEmbeddings(
+        model_name="google/embeddinggemma-300m",
+        encode_kwargs={
+            "normalize_embeddings": True,
+        },
+    )
