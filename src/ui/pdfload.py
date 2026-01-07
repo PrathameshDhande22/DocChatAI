@@ -1,12 +1,15 @@
-from langchain_core.documents.base import Document
+from langchain_core.documents import Document
+from langchain_core.vectorstores import VectorStore
 from streamlit.runtime.uploaded_file_manager import UploadedFile
 import streamlit as st
 
+from core.embeddings import get_embedding_model
 from core.loaders import (
     load_and_split_pdfs,
     savefile_to_temp,
     split_documents,
 )
+from core.vectorstore import getVectorStore
 from utils import add_Session, add_Session_Key, get_session_state
 
 
@@ -30,10 +33,22 @@ async def processdocs(docs: list[UploadedFile]):
             files_added.extend([filename.name for filename in files_to_process])
             add_Session({"files_added": files_added, "processing": False})
 
+            await store_in_vector(list_of_documents, "pdfs")
+
         else:
             add_Session_Key("processing", False)
             st.toast("File Already Processed", icon=":material/done_outline:")
     except Exception as e:
         add_Session_Key("processing", False)
         st.toast("Error Occured During Loading the Docs", icon=":material/error:")
+        print(e)
+
+
+async def store_in_vector(documents: list[Document], collection_name: str):
+    try:
+        vectorStore: VectorStore = getVectorStore("Chroma", collection_name)
+
+        await vectorStore.afrom_documents(documents, get_embedding_model())
+
+    except Exception as e:
         print(e)

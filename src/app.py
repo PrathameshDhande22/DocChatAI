@@ -50,6 +50,3 @@ with st.sidebar:
             args=(fileuploaded,),
             disabled=st.session_state.processing,
         )
-
-if st.button("lcick"):
-    print(get_embedding_model().embed_query("my name is prathamesh"))
