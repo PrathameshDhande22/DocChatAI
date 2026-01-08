@@ -10,7 +10,6 @@ from streamlit.runtime.uploaded_file_manager import UploadedFile
 def load_and_split_pdfs(tempfile_path: list[str]) -> list[Document]:
     try:
         documents: list[Document] = []
-        print(tempfile_path)
         for file in tempfile_path:
             pdfloader = PyPDFLoader(
                 file_path=file,
@@ -20,9 +19,21 @@ def load_and_split_pdfs(tempfile_path: list[str]) -> list[Document]:
             )
             for document in pdfloader.lazy_load():
                 documents.append(document)
-                print(document)
+
         return documents
 
+    except Exception as e:
+        return _load_and_split_pdfs_wot_ocr(tempfile_path)
+
+
+def _load_and_split_pdfs_wot_ocr(tempfile_path: list[str]) -> list[Document]:
+    try:
+        documents: list[Document] = []
+        for file in tempfile_path:
+            pdfloader = PyPDFLoader(file_path=file, mode="page")
+            for document in pdfloader.lazy_load():
+                documents.append(document)
+        return documents
     except Exception as e:
         raise e
 
