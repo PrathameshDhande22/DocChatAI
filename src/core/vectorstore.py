@@ -4,9 +4,11 @@ from chromadb import PersistentClient
 from langchain_chroma import Chroma
 from typing import Literal
 from langchain_core.vectorstores import VectorStore
+import streamlit as st
 from core.embeddings import get_embedding_model
 
 
+@st.cache_resource
 def getVectorStore(
     provider: Literal["Chroma", "Pgvector"], collection_name: str
 ) -> VectorStore:

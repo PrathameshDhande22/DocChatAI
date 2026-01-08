@@ -7,18 +7,20 @@ import tempfile
 from streamlit.runtime.uploaded_file_manager import UploadedFile
 
 
-async def load_and_split_pdfs(tempfile_path: list[str]) -> list[Document]:
+def load_and_split_pdfs(tempfile_path: list[str]) -> list[Document]:
     try:
         documents: list[Document] = []
+        print(tempfile_path)
         for file in tempfile_path:
             pdfloader = PyPDFLoader(
                 file_path=file,
                 images_parser=RapidOCRBlobParser(),
                 mode="page",
-                images_inner_format="markdown-img",
+                images_inner_format="text",
             )
-            async for document in pdfloader.alazy_load():
+            for document in pdfloader.lazy_load():
                 documents.append(document)
+                print(document)
         return documents
 
     except Exception as e:
@@ -26,7 +28,7 @@ async def load_and_split_pdfs(tempfile_path: list[str]) -> list[Document]:
 
 
 def split_documents(documents: Iterable[Document]) -> list[Document]:
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1200, chunk_overlap=200)
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=2000, chunk_overlap=200)
     return text_splitter.split_documents(documents)
 
 

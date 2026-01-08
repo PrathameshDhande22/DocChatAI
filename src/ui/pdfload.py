@@ -1,54 +1,78 @@
+from concurrent.futures import Future, ThreadPoolExecutor
 from langchain_core.documents import Document
 from langchain_core.vectorstores import VectorStore
 from streamlit.runtime.uploaded_file_manager import UploadedFile
 import streamlit as st
 
-from core.embeddings import get_embedding_model
 from core.loaders import (
     load_and_split_pdfs,
     savefile_to_temp,
     split_documents,
 )
 from core.vectorstore import getVectorStore
-from utils import add_Session, add_Session_Key, get_session_state
+from ui.models.ProcessDocsResult import ProcessDocsResult
+from utils import add_Session, get_session_state
 
 
-async def processdocs(docs: list[UploadedFile]):
+def docs_to_process(docs: list[UploadedFile]) -> list[UploadedFile]:
+    files_added: list[str] = get_session_state("files_added")
+
+    # avoid processing the files for which it is already done
+    files_to_process: list[UploadedFile] = [
+        doc for doc in docs if doc.name not in files_added
+    ]
+    if len(files_to_process) > 0:
+        st.toast("Processing Started", icon="spinner")
+        return files_to_process
+    else:
+        st.toast("File Already Processed", icon=":material/done_outline:")
+        return []
+
+
+def processdocs(docs: list[UploadedFile]) -> ProcessDocsResult:
     try:
-        files_added: list[str] = get_session_state("files_added")
+        temp_path: list[str] = savefile_to_temp(docs)
+        documents: list[Document] = load_and_split_pdfs(temp_path)
+        list_of_documents: list[Document] = split_documents(documents)
 
-        # avoid processing the files for which it is already done
-        files_to_process: list[UploadedFile] = [
-            doc for doc in docs if doc.name not in files_added
-        ]
+        store_in_vector(list_of_documents, "pdfs")
 
-        if len(files_to_process) > 0:
-            st.toast("Processing Started", icon="spinner")
+        return ProcessDocsResult(
+            files_added=[doc.name for doc in docs], processing=False, success=True
+        )
 
-            temp_path: list[str] = savefile_to_temp(files_to_process)
-            documents: list[Document] = await load_and_split_pdfs(temp_path)
-            list_of_documents: list[Document] = split_documents(documents)
-
-            # add the files to the session
-            files_added.extend([filename.name for filename in files_to_process])
-            add_Session({"files_added": files_added, "processing": False})
-
-            await store_in_vector(list_of_documents, "pdfs")
-
-        else:
-            add_Session_Key("processing", False)
-            st.toast("File Already Processed", icon=":material/done_outline:")
     except Exception as e:
-        add_Session_Key("processing", False)
-        st.toast("Error Occured During Loading the Docs", icon=":material/error:")
         print(e)
+        return ProcessDocsResult(files_added=[], processing=False, success=False)
 
 
-async def store_in_vector(documents: list[Document], collection_name: str):
+def store_in_vector(documents: list[Document], collection_name: str):
     try:
         vectorStore: VectorStore = getVectorStore("Chroma", collection_name)
-
-        await vectorStore.afrom_documents(documents, get_embedding_model())
-
+        vectorStore.add_documents(documents)
     except Exception as e:
         print(e)
+
+
+def handle_pdf_processing_executor(
+    executor: ThreadPoolExecutor, fileuploaded: list[UploadedFile]
+):
+    list_docs_for_processing = docs_to_process(fileuploaded)
+    future: Future[ProcessDocsResult] = executor.submit(
+        processdocs, list_docs_for_processing
+    )
+    result = future.result()
+    if future.done() and result.success:
+        add_Session(
+            {
+                "processing": result.processing,
+                "files_added": result.files_added,
+            }
+        )
+    elif future.cancelled() and future.exception():
+        print(future.exception())
+        add_Session({"processing": False})
+        st.toast("Error Occured During Loading the Docs", icon=":material/error:")
+    else:
+        st.toast("Error Occured During Loading the Docs", icon=":material/error:")
+        

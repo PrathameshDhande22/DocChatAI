@@ -1,12 +1,14 @@
-import asyncio
+from concurrent.futures import ThreadPoolExecutor
 import streamlit as st
 from streamlit.runtime.uploaded_file_manager import UploadedFile
+
 from about import show_info
-from core.embeddings import get_embedding_model
-from ui.pdfload import processdocs
+from ui.pdfload import handle_pdf_processing_executor
+from ui.worker import get_executor
 from utils import initialize_session
 
 initialize_session()
+executor: ThreadPoolExecutor = get_executor()
 
 # set the page layout
 st.set_page_config("DocChat AI", ":books:")
@@ -27,7 +29,7 @@ fileuploaded: list[UploadedFile] = []
 # onclick
 def onprocessclick(fileuploaded: list[UploadedFile]):
     st.session_state.processing = True
-    asyncio.run(processdocs(fileuploaded))
+    handle_pdf_processing_executor(executor, fileuploaded)
 
 
 # set the fileuploader in the sidebar
