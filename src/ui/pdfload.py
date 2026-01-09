@@ -70,9 +70,9 @@ def handle_pdf_processing_executor(
             }
         )
     elif future.cancelled() and future.exception():
-        print(future.exception())
         add_Session({"processing": False})
         st.toast("Error Occured During Loading the Docs", icon=":material/error:")
     else:
+        add_Session({"processing": False})
         st.toast("Error Occured During Loading the Docs", icon=":material/error:")
         

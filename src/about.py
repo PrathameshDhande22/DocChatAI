@@ -15,6 +15,10 @@ def show_info():
             text_alignment="justify",
         )
 
+    st.warning(
+        "**Scanned PDFs** or PDFs with **Scanned Images** are not allowed and even they don't work."
+    )
+
     st.markdown(
         "**Created By:** Prathamesh Dhande </br> **Contact:** prathameshdhande534@gmail.com",
         unsafe_allow_html=True,

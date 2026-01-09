@@ -19,7 +19,6 @@ def load_and_split_pdfs(tempfile_path: list[str]) -> list[Document]:
             )
             for document in pdfloader.lazy_load():
                 documents.append(document)
-
         return documents
 
     except Exception as e:
