@@ -25,7 +25,6 @@ def getLLMModel(provider: Literal["HuggingFace", "Google"]) -> BaseChatModel:
                 max_retries=3,
                 thinking_budget=1000,
                 include_thoughts=True,
-                thinking_level="medium",
             )
         case "HuggingFace":
             huggingfacepipline = HuggingFacePipeline.from_model_id(
