@@ -1,7 +1,7 @@
 from langchain_core.language_models.chat_models import BaseChatModel
-from langchain.agents import create_agent
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain.messages import SystemMessage, AIMessage
+
 from src.retrieval_graph.state import GraphState
 from src.core.llm_models import getLLMModel
 from src.retrieval_graph.tools import retreive_docs
@@ -25,4 +25,5 @@ def query_or_respond(state: GraphState) -> GraphState:
 
     airesponse: AIMessage = chain.invoke(input={"messages": state["messages"]})
 
-    return {**state, "messages": [airesponse]}
+    return {"messages": [airesponse]}
+

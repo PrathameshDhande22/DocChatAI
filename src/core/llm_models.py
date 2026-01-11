@@ -23,12 +23,12 @@ def getLLMModel(provider: Literal["HuggingFace", "Google"]) -> BaseChatModel:
                 },
                 temperature=0.2,
                 max_retries=3,
-                thinking_budget=1000,
-                include_thoughts=True,
+                thinking_budget=0,
             )
         case "HuggingFace":
             huggingfacepipline = HuggingFacePipeline.from_model_id(
-                model_id="Qwen/Qwen3-0.6B", task="text-generation"
+                model_id="Qwen/Qwen3-0.6B",
+                task="text-generation"
             )
             return ChatHuggingFace(llm=huggingfacepipline, verbose=True, temperture=0.7)
         case _:
