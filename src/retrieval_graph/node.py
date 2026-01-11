@@ -1,22 +1,28 @@
+from typing import Literal
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain.messages import SystemMessage, AIMessage
+from langchain.messages import SystemMessage, AIMessage, ToolMessage, HumanMessage
+from langgraph.types import Command
 
+from src.core.models.GradeDocument import GradeDocument
 from src.retrieval_graph.state import GraphState
 from src.core.llm_models import getLLMModel
-from src.retrieval_graph.tools import retreive_docs
-from src.retrieval_graph.prompt import query_or_respond as QueryPrompt
+from src.retrieval_graph.tools import current_datetime, retreive_docs, uploaded_docs
+from src.retrieval_graph.edges import REWRITE_QUESTION, GENERATE_ANSWER
+from src.retrieval_graph.prompt import GRADE_DOCUMENT_PROMPT, QUERY_OR_RESPOND_PROMPT
 
 llm_model: BaseChatModel = getLLMModel("Google")
 
 
 def query_or_respond(state: GraphState) -> GraphState:
 
-    model_with_structured = llm_model.bind_tools(tools=[retreive_docs])
+    model_with_structured = llm_model.bind_tools(
+        tools=[retreive_docs, current_datetime, uploaded_docs]
+    )
 
     prompt = ChatPromptTemplate.from_messages(
         messages=[
-            SystemMessage(QueryPrompt),
+            SystemMessage(QUERY_OR_RESPOND_PROMPT),
             MessagesPlaceholder(variable_name="messages"),
         ]
     )
@@ -27,3 +33,44 @@ def query_or_respond(state: GraphState) -> GraphState:
 
     return {"messages": [airesponse]}
 
+
+def grade_documents(
+    state: GraphState,
+) -> Command[Literal["generate_answer", "rewrite_question"]]:
+    llm_with_structured = llm_model.with_structured_output(GradeDocument)
+
+    document: str | None = None
+    question: str
+
+    if isinstance(state.get("messages")[-1], ToolMessage):
+        document = state.get("messages")[-1].content
+    if isinstance(state.get("messages")[-1], HumanMessage):
+        question = state.get("messages")[-2].content
+
+    prompt = ChatPromptTemplate.from_messages(
+        messages=[
+            SystemMessage(GRADE_DOCUMENT_PROMPT),
+        ]
+    )
+
+    chain = prompt | llm_with_structured
+
+    grade_document: GradeDocument = chain.invoke(
+        input={"question": question, "document": document}
+    )
+
+    return (
+        Command(goto=GENERATE_ANSWER, update={"improvement": None})
+        if grade_document.score == "yes"
+        else Command(
+            goto=REWRITE_QUESTION, update={"improvement": grade_document.improvement}
+        )
+    )
+
+
+def rewrite_question(state: GraphState) -> GraphState:
+    return {}
+
+
+def generate_answer(state: GraphState) -> GraphState:
+    return {}
