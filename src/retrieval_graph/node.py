@@ -24,7 +24,7 @@ from src.retrieval_graph.prompt import (
     REWRITE_QUESTION_HUMAN_PROMPT,
 )
 
-llm_model: BaseChatModel = getLLMModel("Mistral")
+llm_model: BaseChatModel = getLLMModel("GPT OSS 120b")
 
 
 def query_or_respond(state: GraphState) -> GraphState:
