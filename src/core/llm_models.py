@@ -9,9 +9,12 @@ from langchain_google_genai import (
 from langchain_huggingface import HuggingFacePipeline
 from langchain_huggingface.chat_models import ChatHuggingFace
 from langchain.chat_models import BaseChatModel
+from langchain_mistralai import ChatMistralAI
+
+type Providers = Literal["HuggingFace", "Google", "Mistral"]
 
 
-def getLLMModel(provider: Literal["HuggingFace", "Google"]) -> BaseChatModel:
+def getLLMModel(provider: Providers) -> BaseChatModel:
     match provider:
         case "Google":
             return ChatGoogleGenerativeAI(
@@ -27,9 +30,15 @@ def getLLMModel(provider: Literal["HuggingFace", "Google"]) -> BaseChatModel:
             )
         case "HuggingFace":
             huggingfacepipline = HuggingFacePipeline.from_model_id(
-                model_id="Qwen/Qwen3-0.6B",
-                task="text-generation"
+                model_id="Qwen/Qwen3-0.6B", task="text-generation"
             )
             return ChatHuggingFace(llm=huggingfacepipline, verbose=True, temperture=0.7)
+        case "Mistral":
+            return ChatMistralAI(
+                model_name="mistral-large-2512",
+                temperature=0.2,
+                api_key=os.getenv("MISTRAL_API_KEY"),
+                max_retries=3,
+            )
         case _:
             raise Exception("Implement the Provider First")

@@ -24,7 +24,7 @@ from src.retrieval_graph.prompt import (
     REWRITE_QUESTION_HUMAN_PROMPT,
 )
 
-llm_model: BaseChatModel = getLLMModel("Google")
+llm_model: BaseChatModel = getLLMModel("Mistral")
 
 
 def query_or_respond(state: GraphState) -> GraphState:
@@ -105,8 +105,24 @@ def rewrite_question(state: GraphState) -> GraphState:
         "messages": [
             RemoveMessage(id=message.id) for message in state.get("messages", [])[-3:]
         ]
-        + [HumanMessage(content=airesponse.content)]
+        + [HumanMessage(content=airesponse.content)],
+        "rewritten": state.get("rewritten", 0) + 1,
     }
+
+
+def should_stop_iterate(
+    state: GraphState,
+) -> Literal["generate_answer", "grade_document", "query_or_respond"]:
+    MAX_REWRITTEN: int = 4
+    re_written = state.get("rewritten", 0)
+
+    last_tool_message = state.get("messages")[-1]
+    if isinstance(last_tool_message, ToolMessage) and (
+        last_tool_message.name == "current_datetime"
+        or last_tool_message.name == "uploaded_docs"
+    ):
+        return "query_or_respond"
+    return "generate_answer" if re_written > MAX_REWRITTEN else "grade_document"
 
 
 def generate_answer(state: GraphState) -> GraphState:
@@ -127,8 +143,6 @@ def generate_answer(state: GraphState) -> GraphState:
 
     if document is None or question == "":
         raise Exception("document and question is None")
-
-    print("documents=>", document, "Question:=>", question)
 
     chain = prompt | llm_model
 

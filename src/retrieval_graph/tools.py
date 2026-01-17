@@ -62,4 +62,4 @@ def current_datetime() -> str:
     Returns:
         str: Current date and time in system default string format.
     """
-    return datetime.datetime.now().strftime()
+    return datetime.datetime.now().strftime("%d/%m/%Y, %H:%M:%S")

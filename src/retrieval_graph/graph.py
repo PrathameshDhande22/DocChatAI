@@ -14,6 +14,7 @@ from src.retrieval_graph.node import (
     grade_documents,
     query_or_respond,
     rewrite_question,
+    should_stop_iterate,
 )
 from src.retrieval_graph.state import GraphState
 
@@ -27,7 +28,7 @@ builder.add_node(GENERATE_ANSWER, generate_answer)
 
 builder.add_edge(START, QUERY_OR_RESPOND)
 builder.add_conditional_edges(QUERY_OR_RESPOND, tools_condition)
-builder.add_edge(TOOLS, GRADE_DOCUMENTS)
+builder.add_conditional_edges(TOOLS, should_stop_iterate)
 builder.add_edge(REWRITE_QUESTION, QUERY_OR_RESPOND)
 builder.add_edge(GENERATE_ANSWER, END)
 
