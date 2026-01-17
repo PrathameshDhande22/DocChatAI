@@ -1,3 +1,4 @@
+from functools import lru_cache
 import os
 from typing import Literal
 
@@ -17,6 +18,7 @@ type Providers = Literal[
 ]
 
 
+@lru_cache(maxsize=10)
 def getLLMModel(provider: Providers) -> BaseChatModel:
     match provider:
         case "Gemini 2.5 Flash":

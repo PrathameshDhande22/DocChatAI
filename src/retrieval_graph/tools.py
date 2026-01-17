@@ -2,8 +2,8 @@ import datetime
 from langchain_core.documents.base import Document
 from langchain_core.vectorstores.base import VectorStore, VectorStoreRetriever
 from langchain.tools import tool, ToolRuntime
-from src.retrieval_graph.state import GraphState
-from src.core.vectorstore import getVectorStore
+from retrieval_graph.state import GraphState
+from core.vectorstore import getVectorStore
 
 # TODO: Later add the Filtering the Docs Based on Uploaded PDF based on the context
 

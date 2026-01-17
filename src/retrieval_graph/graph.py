@@ -1,24 +1,24 @@
 from langgraph.graph import StateGraph, START, END
 from langgraph.prebuilt import ToolNode, tools_condition
 
-from src.retrieval_graph.edges import (
+from retrieval_graph.edges import (
     GENERATE_ANSWER,
     GRADE_DOCUMENTS,
     QUERY_OR_RESPOND,
     REWRITE_QUESTION,
     TOOLS,
 )
-from src.retrieval_graph.tools import retreive_docs, uploaded_docs, current_datetime
-from src.retrieval_graph.node import (
+from retrieval_graph.tools import retreive_docs, uploaded_docs, current_datetime
+from retrieval_graph.node import (
     generate_answer,
     grade_documents,
     query_or_respond,
     rewrite_question,
     should_stop_iterate,
 )
-from src.retrieval_graph.state import GraphState
+from retrieval_graph.state import GraphState, ModelContext
 
-builder = StateGraph(state_schema=GraphState)
+builder = StateGraph(state_schema=GraphState, context_schema=ModelContext)
 
 builder.add_node(QUERY_OR_RESPOND, query_or_respond)
 builder.add_node(TOOLS, ToolNode([retreive_docs, uploaded_docs, current_datetime]))
