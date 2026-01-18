@@ -32,7 +32,7 @@ def docs_to_process(docs: list[UploadedFile]) -> list[UploadedFile]:
 def processdocs(docs: list[UploadedFile]) -> ProcessDocsResult:
     try:
         temp_path: list[str] = savefile_to_temp(docs)
-        documents: list[Document] = load_and_split_pdfs(temp_path)
+        documents: list[Document] = load_and_split_pdfs(temp_path,[doc.name for doc in docs])
         list_of_documents: list[Document] = split_documents(documents)
 
         store_in_vector(list_of_documents, "pdfs")
@@ -75,4 +75,3 @@ def handle_pdf_processing_executor(
     else:
         add_Session({"processing": False})
         st.toast("Error Occured During Loading the Docs", icon=":material/error:")
-        

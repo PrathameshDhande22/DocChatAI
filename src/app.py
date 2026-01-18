@@ -56,6 +56,7 @@ with st.sidebar:
             disabled=st.session_state.processing,
         )
 
+
 provider = st.selectbox(
     accept_new_options=False,
     label="Select Provider",

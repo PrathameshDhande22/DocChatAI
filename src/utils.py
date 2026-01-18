@@ -1,5 +1,7 @@
 from typing import Any, Literal, TypedDict
 import streamlit as st
+from langchain_core.messages import BaseMessage, HumanMessage, AIMessage
+
 
 from core.llm_models import Providers
 
@@ -21,7 +23,6 @@ def initialize_session():
         "processing": False,
         "files_added": [],
         "messages": [],
-        "provider": "Qwen 3",
     }
     for key, value in defaults.items():
         if key not in st.session_state:
@@ -39,3 +40,11 @@ def add_Session(session: dict[SessionKeys, Any]) -> None:
 
 def get_session_state(key: SessionKeys) -> Any:
     return st.session_state.get(key, None)
+
+
+def convert_to_langchain_message(messages: list[chatmessagetuple]) -> list[BaseMessage]:
+    return [
+        HumanMessage(content=msg[1]) if msg[0] == "human" else AIMessage(content=msg[1])
+        for msg in messages
+        if msg[0] in ("human", "ai")
+    ]

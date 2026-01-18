@@ -7,30 +7,36 @@ import tempfile
 from streamlit.runtime.uploaded_file_manager import UploadedFile
 
 
-def load_and_split_pdfs(tempfile_path: list[str]) -> list[Document]:
+def load_and_split_pdfs(
+    tempfile_path: list[str], filename: list[str]
+) -> list[Document]:
     try:
         documents: list[Document] = []
-        for file in tempfile_path:
+        for tempfile, originalfile in list(zip(tempfile_path, filename)):
             pdfloader = PyPDFLoader(
-                file_path=file,
+                file_path=tempfile,
                 images_parser=RapidOCRBlobParser(),
                 mode="page",
                 images_inner_format="text",
             )
             for document in pdfloader.lazy_load():
+                document.metadata["filename"] = originalfile
                 documents.append(document)
         return documents
 
     except Exception as e:
-        return _load_and_split_pdfs_wot_ocr(tempfile_path)
+        return _load_and_split_pdfs_wot_ocr(tempfile_path, filename)
 
 
-def _load_and_split_pdfs_wot_ocr(tempfile_path: list[str]) -> list[Document]:
+def _load_and_split_pdfs_wot_ocr(
+    tempfile_path: list[str], filename: list[str]
+) -> list[Document]:
     try:
         documents: list[Document] = []
-        for file in tempfile_path:
-            pdfloader = PyPDFLoader(file_path=file, mode="page")
+        for tempfile, originalfile in list(zip(tempfile_path, filename)):
+            pdfloader = PyPDFLoader(file_path=tempfile, mode="page")
             for document in pdfloader.lazy_load():
+                document.metadata["filename"] = originalfile
                 documents.append(document)
         return documents
     except Exception as e:
