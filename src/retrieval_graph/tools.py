@@ -22,9 +22,9 @@ def retreive_docs(query: str) -> str:
     retriever: VectorStoreRetriever = store.as_retriever(
         search_type="mmr",
         search_kwargs={
-            "k": 20,
-            "fetch_k": 30,
-            "lambda_mult": 0.4,
+            "k": 10,
+            "fetch_k": 20,
+            "lambda_mult": 0.6,
         },
     )
 

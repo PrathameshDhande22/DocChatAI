@@ -11,4 +11,4 @@ class GraphState(MessagesState):
 
 
 class ModelContext(TypedDict):
-    provider: Providers = "GPT OSS 120b"
+    provider: Providers = "Qwen 3"

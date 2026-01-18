@@ -9,9 +9,10 @@ from langchain.messages import (
     RemoveMessage,
 )
 from langgraph.types import Command
+from langgraph.runtime import Runtime
 
 from core.models.GradeDocument import GradeDocument
-from retrieval_graph.state import GraphState
+from retrieval_graph.state import GraphState, ModelContext
 from core.llm_models import getLLMModel
 from retrieval_graph.tools import current_datetime, retreive_docs, uploaded_docs
 from retrieval_graph.edges import REWRITE_QUESTION, GENERATE_ANSWER
@@ -23,10 +24,10 @@ from retrieval_graph.prompt import (
     REWRITE_QUESTION_HUMAN_PROMPT,
 )
 
-llm_model: BaseChatModel = getLLMModel("GPT OSS 120b")
 
+def query_or_respond(state: GraphState, runtime: Runtime[ModelContext]) -> GraphState:
+    llm_model: BaseChatModel = getLLMModel(runtime.context["provider"])
 
-def query_or_respond(state: GraphState) -> GraphState:
     model_with_structured = llm_model.bind_tools(
         tools=[retreive_docs, current_datetime, uploaded_docs]
     )
@@ -46,8 +47,9 @@ def query_or_respond(state: GraphState) -> GraphState:
 
 
 def grade_documents(
-    state: GraphState,
+    state: GraphState, runtime: Runtime[ModelContext]
 ) -> Command[Literal["generate_answer", "rewrite_question"]]:
+    llm_model: BaseChatModel = getLLMModel(runtime.context["provider"])
     llm_with_structured = llm_model.with_structured_output(GradeDocument)
 
     document: str | None = None
@@ -83,11 +85,11 @@ def grade_documents(
     )
 
 
-def rewrite_question(state: GraphState) -> GraphState:
+def rewrite_question(state: GraphState, runtime: Runtime[ModelContext]) -> GraphState:
     prompt = ChatPromptTemplate.from_messages(
         messages=[("human", REWRITE_QUESTION_HUMAN_PROMPT)]
     )
-
+    llm_model: BaseChatModel = getLLMModel(runtime.context["provider"])
     question: str = ""
 
     if isinstance(state.get("messages")[-3], HumanMessage):
@@ -112,7 +114,7 @@ def rewrite_question(state: GraphState) -> GraphState:
 def should_stop_iterate(
     state: GraphState,
 ) -> Literal["generate_answer", "grade_document", "query_or_respond"]:
-    MAX_REWRITTEN: int = 4
+    MAX_REWRITTEN: int = 3
     re_written = state.get("rewritten", 0)
 
     last_tool_message = state.get("messages")[-1]
@@ -124,13 +126,15 @@ def should_stop_iterate(
     return "generate_answer" if re_written > MAX_REWRITTEN else "grade_document"
 
 
-def generate_answer(state: GraphState) -> GraphState:
+def generate_answer(state: GraphState, runtime: Runtime[ModelContext]) -> GraphState:
     prompt = ChatPromptTemplate.from_messages(
         messages=[
             ("system", GENERATE_ANSWER_SYSTEM_PROMPT),
             ("human", GRADE_DOCUMENT_HUMAN),
         ]
     )
+
+    llm_model: BaseChatModel = getLLMModel(runtime.context["provider"])
 
     document: str | None = None
     question: str = ""

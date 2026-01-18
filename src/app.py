@@ -1,4 +1,5 @@
 from concurrent.futures import ThreadPoolExecutor
+from dotenv import load_dotenv
 import streamlit as st
 from streamlit.runtime.uploaded_file_manager import UploadedFile
 
@@ -9,6 +10,7 @@ from ui.worker import get_executor
 from utils import get_session_state, initialize_session
 
 initialize_session()
+load_dotenv()
 executor: ThreadPoolExecutor = get_executor()
 
 # set the page layout
@@ -77,5 +79,5 @@ if input_message := st.chat_input(
     max_chars=150,
 ):
     display_chat_box(("human", input_message))
-    
+
     display_ai_chat_box(input_message)
