@@ -8,7 +8,6 @@ import streamlit as st
 from core.embeddings import get_embedding_model
 
 
-@st.cache_resource
 def getVectorStore(
     provider: Literal["Chroma", "Pgvector"], collection_name: str
 ) -> VectorStore:
