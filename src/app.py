@@ -94,4 +94,4 @@ if input_message := st.chat_input(
 ):
     display_chat_box(("human", input_message))
 
-    display_ai_chat_box(input_message)
+    display_ai_chat_box()

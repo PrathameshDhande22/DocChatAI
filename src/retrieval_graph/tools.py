@@ -21,8 +21,8 @@ def retreive_docs(query: str, runtime: ToolRuntime[ModelContext, GraphState]) ->
         search_type="mmr",
         search_kwargs={
             "k": 10,
-            "fetch_k": 20,
-            "lambda_mult": 0.6,
+            "fetch_k": 15,
+            "lambda_mult": 0.8,
             "filter": {"filename": {"$in": runtime.state["files_uploaded"]}},
         },
     )

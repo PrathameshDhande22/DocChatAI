@@ -24,8 +24,9 @@ def display_chat_box(message: chatmessagetuple):
     chat_message_box.markdown(message[1])
 
 
-def display_ai_chat_box(message: str):
+def display_ai_chat_box():
     try:
+        usagehandler = UsageMetadataCallbackHandler()
         with st.chat_message("ai"):
             message_placeholder = st.empty()
             full_response = ""
@@ -36,15 +37,14 @@ def display_ai_chat_box(message: str):
                         "rewritten": 0,
                         "messages": convert_to_langchain_message(
                             get_session_state("messages")
-                        )
-                        + HumanMessage(content=message),
+                        ),
                     },
                     context={"provider": get_session_state("provider")},
                     stream_mode=["custom", "messages"],
-                    print_mode=["custom", "updates"],
+                    print_mode=["custom", "debug"],
                     config={
                         "callbacks": [
-                            UsageMetadataCallbackHandler(),
+                            usagehandler,
                         ]
                     },
                 ):
@@ -56,6 +56,7 @@ def display_ai_chat_box(message: str):
                             full_response += chunk[1][0].content
                             message_placeholder.markdown(full_response.strip())
             add_message_to_session(("ai", full_response))
+            print(usagehandler.usage_metadata)
     except Exception as e:
         print(e)
         st.error("Some Error Occured while Invoking the Graph / Workflow")
