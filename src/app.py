@@ -7,14 +7,18 @@ from about import show_info
 from ui.chatdisplay import display_ai_chat_box, display_chat_box
 from ui.pdfload import handle_pdf_processing_executor
 from ui.worker import get_executor
-from utils import get_session_state, initialize_session
+from utils import add_Session, get_session_state, initialize_session
 
 initialize_session()
 load_dotenv()
 executor: ThreadPoolExecutor = get_executor()
 
 # set the page layout
-st.set_page_config("DocChat AI", ":books:")
+st.set_page_config(
+    "DocChat AI",
+    ":books:",
+    menu_items={"about": "", "Get Help": "https://github.com/prathameshdhande22"},
+)
 
 # set the columns to divide the title and button
 col1, col2 = st.columns([8, 1], vertical_alignment="center")
@@ -37,6 +41,15 @@ def onprocessclick(fileuploaded: list[UploadedFile]):
 
 # set the fileuploader in the sidebar
 with st.sidebar:
+    if st.button(
+        "New Chat",
+        help="New Chat with New Model",
+        type="secondary",
+        icon=":material/chat:",
+        width="stretch",
+    ):
+        add_Session({"messages": [], "provider": "Qwen 3"})
+
     st.header("File Upload")
     st.markdown("Upload the `.pdf` files here to Get Started")
 

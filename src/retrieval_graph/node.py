@@ -114,7 +114,7 @@ def rewrite_question(state: GraphState, runtime: Runtime[ModelContext]) -> Graph
 def should_stop_iterate(
     state: GraphState,
 ) -> Literal["generate_answer", "grade_document", "query_or_respond"]:
-    MAX_REWRITTEN: int = 3
+    MAX_REWRITTEN: int = 2
     re_written = state.get("rewritten", 0)
 
     last_tool_message = state.get("messages")[-1]

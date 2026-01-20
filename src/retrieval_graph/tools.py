@@ -2,14 +2,12 @@ import datetime
 from langchain_core.documents.base import Document
 from langchain_core.vectorstores.base import VectorStore, VectorStoreRetriever
 from langchain.tools import tool, ToolRuntime
-from retrieval_graph.state import GraphState
+from retrieval_graph.state import GraphState, ModelContext
 from core.vectorstore import getVectorStore
-
-# TODO: Later add the Filtering the Docs Based on Uploaded PDF based on the context
 
 
 @tool(parse_docstring=True)
-def retreive_docs(query: str) -> str:
+def retreive_docs(query: str, runtime: ToolRuntime[ModelContext, GraphState]) -> str:
     """Retrieve Relevant Documents from the vector store based on a search query.
 
     Args:
@@ -25,6 +23,7 @@ def retreive_docs(query: str) -> str:
             "k": 10,
             "fetch_k": 20,
             "lambda_mult": 0.6,
+            "filter": {"filename": {"$in": runtime.state["files_uploaded"]}},
         },
     )
 
@@ -45,7 +44,7 @@ def convert_doc_to_str(docs: list[Document]) -> str:
 
 
 @tool(description="Retreive the list of documents uploaded by the user")
-def uploaded_docs(runtime: ToolRuntime[None, GraphState]) -> list[str]:
+def uploaded_docs(runtime: ToolRuntime[ModelContext, GraphState]) -> list[str]:
     """
     Retrieve the list of documents uploaded by the user.
 
