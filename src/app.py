@@ -5,6 +5,7 @@ from streamlit.runtime.uploaded_file_manager import UploadedFile
 
 from about import show_info
 from ui.chatdisplay import display_ai_chat_box, display_chat_box
+from ui.exporter import export_chat_pdf
 from ui.pdfload import handle_pdf_processing_executor
 from ui.worker import get_executor
 from utils import add_Session, get_session_state, initialize_session
@@ -39,6 +40,38 @@ def onprocessclick(fileuploaded: list[UploadedFile]):
     handle_pdf_processing_executor(executor, fileuploaded)
 
 
+@st.fragment
+def exportchat_pdf_fragment():
+    container = st.container()
+
+    file_path: str = st.session_state.get("file_path")
+
+    if file_path is None or len(file_path) <= 0:
+        with container:
+            st.button(
+                "Export as PDF",
+                type="secondary",
+                use_container_width=True,
+                help="Export all your chats as PDF",
+                icon=":material/file_export:",
+                disabled=len(get_session_state("messages")) <= 0,
+                on_click=export_chat_pdf,
+                args=(get_session_state("messages"),),
+            )
+    else:
+        with container:
+            with open(file_path, "rb") as f:
+                st.download_button(
+                    label="Download PDF",
+                    icon=":material/download:",
+                    data=f,
+                    file_name="chats.pdf",
+                    mime="application/pdf",
+                    type="secondary",
+                    use_container_width=True,
+                )
+
+
 # set the fileuploader in the sidebar
 with st.sidebar:
     if st.button(
@@ -48,8 +81,9 @@ with st.sidebar:
         icon=":material/chat:",
         width="stretch",
     ):
-        add_Session({"messages": [], "provider": "Qwen 3"})
+        add_Session({"messages": [], "provider": "Qwen 3", "file_path": ""})
 
+    exportchat_pdf_fragment()
     st.header("File Upload")
     st.markdown("Upload the `.pdf` files here to Get Started")
 
@@ -80,7 +114,6 @@ provider = st.selectbox(
     disabled=len(get_session_state("messages")) > 0,
 )
 
-
 # Display the previous messages
 for message in get_session_state("messages"):
     chat_message_box = st.chat_message(message[0])
@@ -95,3 +128,4 @@ if input_message := st.chat_input(
     display_chat_box(("human", input_message))
 
     display_ai_chat_box()
+    st.rerun()

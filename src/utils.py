@@ -13,9 +13,10 @@ class SessionState(TypedDict):
     files_added: list[str]
     messages: list[chatmessagetuple]
     provider: Providers
+    file_path: str
 
 
-SessionKeys = Literal["processing", "files_added", "messages", "provider"]
+SessionKeys = Literal["processing", "files_added", "messages", "provider", "file_path"]
 
 
 def initialize_session():
@@ -23,6 +24,7 @@ def initialize_session():
         "processing": False,
         "files_added": [],
         "messages": [],
+        "file_path": "",
     }
     for key, value in defaults.items():
         if key not in st.session_state:

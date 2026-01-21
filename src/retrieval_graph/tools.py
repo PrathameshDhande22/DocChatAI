@@ -51,7 +51,12 @@ def uploaded_docs(runtime: ToolRuntime[ModelContext, GraphState]) -> list[str]:
     Returns:
         list[str]: A list of filenames representing the documents currently uploaded.
     """
-    return runtime.state["files_uploaded"]
+    return (
+        []
+        if runtime.state["files_uploaded"] is None
+        or len(runtime.state["files_uploaded"]) <= 0
+        else runtime.state["files_uploaded"]
+    )
 
 
 @tool(description="Returns the Current System Date and Time")
