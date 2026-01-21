@@ -14,12 +14,31 @@ dependencies = [
     "langchain-huggingface>=1.2.0",
     "langchain-mistralai>=1.1.1",
     "langchain-text-splitters>=1.1.0",
-    "langgraph-cli[inmem]>=0.4.11",
     "pypdf>=6.5.0",
     "rapidocr-onnxruntime>=1.4.4",
+    "reportlab>=4.4.9",
     "sentence-transformers>=5.2.0",
     "sentencepiece>=0.2.1",
     "streamlit>=1.52.2",
     "torch>=2.9.1",
     "transformers>=4.57.3",
+]
+
+[[tool.uv.index]]
+name = "pytorch-cu130"
+url = "https://download.pytorch.org/whl/cu130"
+explicit = true
+
+[tool.uv.sources]
+torch = [
+  { index = "pytorch-cu130", marker = "sys_platform == 'linux' or sys_platform == 'win32'" },
+]
+torchvision = [
+  { index = "pytorch-cu130", marker = "sys_platform == 'linux' or sys_platform == 'win32'" },
+]
+
+[dependency-groups]
+dev = [
+    "ipykernel>=7.1.0",
+    "langgraph-cli[inmem]>=0.4.11",
 ]
