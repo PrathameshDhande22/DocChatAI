@@ -3,7 +3,8 @@ import streamlit as st
 
 
 @st.dialog("About")
-def show_info():
+def show_info() -> None:
+    """Shows the Dialog for the About"""
     with st.container(horizontal=True, horizontal_alignment="center"):
         st.image(
             image=Path.cwd().joinpath("Images").joinpath("imageicon.png"),

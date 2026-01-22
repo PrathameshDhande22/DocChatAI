@@ -13,13 +13,28 @@ from langchain_huggingface.chat_models import ChatHuggingFace
 from langchain.chat_models import BaseChatModel
 from langchain_mistralai import ChatMistralAI
 
+from logger import get_logger
+
 type Providers = Literal[
     "Gemini 2.5 Flash", "Qwen 3", "Mistral Large 3", "GPT OSS 120b"
 ]
 
+logger = get_logger()
 
 @lru_cache(maxsize=10)
 def getLLMModel(provider: Providers) -> BaseChatModel:
+    """Get the LLM Model for the specified Provider
+
+    Args:
+        provider (Providers): Provider of the LLM Model
+
+    Raises:
+        Exception: If the provider is not implemented
+
+    Returns:
+        BaseChatModel: BaseChatModel of the Langchain
+    """ 
+    logger.info(f"Getting LLM Model for provider: {provider}")
     match provider:
         case "Gemini 2.5 Flash":
             return ChatGoogleGenerativeAI(
@@ -53,4 +68,5 @@ def getLLMModel(provider: Providers) -> BaseChatModel:
                 temperature=0.2,
             )
         case _:
+            logger.error(f"Provider:{provider} not implemented")
             raise Exception("Implement the Provider First")

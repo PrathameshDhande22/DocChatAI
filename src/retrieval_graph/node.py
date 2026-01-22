@@ -12,6 +12,7 @@ from langgraph.types import Command
 from langgraph.runtime import Runtime
 
 from core.models.GradeDocument import GradeDocument
+from logger import get_logger
 from retrieval_graph.state import GraphState, ModelContext
 from core.llm_models import getLLMModel
 from retrieval_graph.tools import current_datetime, retreive_docs, uploaded_docs
@@ -24,8 +25,11 @@ from retrieval_graph.prompt import (
     REWRITE_QUESTION_HUMAN_PROMPT,
 )
 
+logger = get_logger()
+
 
 def query_or_respond(state: GraphState, runtime: Runtime[ModelContext]) -> GraphState:
+    logger.info("In Query or Respond Node")
     llm_model: BaseChatModel = getLLMModel(runtime.context["provider"])
 
     model_with_structured = llm_model.bind_tools(
@@ -49,6 +53,8 @@ def query_or_respond(state: GraphState, runtime: Runtime[ModelContext]) -> Graph
 def grade_documents(
     state: GraphState, runtime: Runtime[ModelContext]
 ) -> Command[Literal["generate_answer", "rewrite_question"]]:
+    logger.info("In Grade Documents Node")
+
     llm_model: BaseChatModel = getLLMModel(runtime.context["provider"])
     llm_with_structured = llm_model.with_structured_output(GradeDocument)
 
@@ -61,6 +67,7 @@ def grade_documents(
         question = state.get("messages")[-3].content
 
     if document is None or question is None:
+        logger.error("Document or Question is None in Grade Documents Node")
         raise Exception("document and question is None")
 
     prompt = ChatPromptTemplate.from_messages(
@@ -86,6 +93,7 @@ def grade_documents(
 
 
 def rewrite_question(state: GraphState, runtime: Runtime[ModelContext]) -> GraphState:
+    logger.info("In Rewrite Question Node")
     prompt = ChatPromptTemplate.from_messages(
         messages=[("human", REWRITE_QUESTION_HUMAN_PROMPT)]
     )
@@ -116,6 +124,10 @@ def should_stop_iterate(
 ) -> Literal["generate_answer", "grade_document", "query_or_respond"]:
     MAX_REWRITTEN: int = 2
     re_written = state.get("rewritten", 0)
+    logger.info(
+        "In Should Stop Iterate Node - Deciding Next Step - Max Rewrites: %s",
+        re_written,
+    )
 
     last_tool_message = state.get("messages")[-1]
     if isinstance(last_tool_message, ToolMessage) and (
@@ -127,6 +139,8 @@ def should_stop_iterate(
 
 
 def generate_answer(state: GraphState, runtime: Runtime[ModelContext]) -> GraphState:
+    logger.info("In Generate Answer Node")
+
     prompt = ChatPromptTemplate.from_messages(
         messages=[
             ("system", GENERATE_ANSWER_SYSTEM_PROMPT),
@@ -145,6 +159,7 @@ def generate_answer(state: GraphState, runtime: Runtime[ModelContext]) -> GraphS
         question = state.get("messages")[-3].content
 
     if document is None or question == "":
+        logger.error("Document or Question is None in Generate Answer Node")
         raise Exception("document and question is None")
 
     chain = prompt | llm_model

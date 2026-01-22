@@ -11,6 +11,18 @@ from core.embeddings import get_embedding_model
 def getVectorStore(
     provider: Literal["Chroma", "Pgvector"], collection_name: str
 ) -> VectorStore:
+    """Get the Vector Store for the Specified Provider
+
+    Args:
+        provider (Literal[&quot;Chroma&quot;, &quot;Pgvector&quot;]): Provider of which to instantiate the vector store.
+        collection_name (str): Collection name to store the embedding
+
+    Raises:
+        Exception: Vector Store is not implemented for the Provided Provider
+
+    Returns:
+        VectorStore: Langchain Base Class for VectorStore
+    """
     match provider:
         case "Chroma":
             client = PersistentClient(path=Path.cwd().joinpath("store"))

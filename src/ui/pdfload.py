@@ -10,8 +10,11 @@ from core.loaders import (
     split_documents,
 )
 from core.vectorstore import getVectorStore
+from logger import get_logger
 from ui.models.ProcessDocsResult import ProcessDocsResult
 from utils import add_Session, get_session_state
+
+logger = get_logger()
 
 
 def docs_to_process(docs: list[UploadedFile]) -> list[UploadedFile]:
@@ -31,6 +34,10 @@ def docs_to_process(docs: list[UploadedFile]) -> list[UploadedFile]:
 
 def processdocs(docs: list[UploadedFile]) -> ProcessDocsResult:
     try:
+        logger.info(
+            "Starting PDF Processing for Files - "
+            + ", ".join([doc.name for doc in docs])
+        )
         temp_path: list[str] = savefile_to_temp(docs)
         documents: list[Document] = load_and_split_pdfs(
             temp_path, [doc.name for doc in docs]
@@ -44,16 +51,19 @@ def processdocs(docs: list[UploadedFile]) -> ProcessDocsResult:
         )
 
     except Exception as e:
-        print(e)
+        logger.error(f"Error during PDF processing: {e}")
+        logger.exception(e)
         return ProcessDocsResult(files_added=[], processing=False, success=False)
 
 
 def store_in_vector(documents: list[Document], collection_name: str):
     try:
+        logger.info("Storing Documents in Vector Store")
         vectorStore: VectorStore = getVectorStore("Chroma", collection_name)
         vectorStore.add_documents(documents)
     except Exception as e:
-        print(e)
+        logger.error(f"Error storing documents in vector store: {e}")
+        logger.exception(e)
 
 
 def handle_pdf_processing_executor(
@@ -65,6 +75,7 @@ def handle_pdf_processing_executor(
     )
     result: ProcessDocsResult = future.result()
     if future.done() and result.success:
+        logger.info("PDF Processing Completed Successfully")
         existing_uploaded_files: list[str] = get_session_state("files_added")
         existing_uploaded_files.extend(result.files_added)
         add_Session(
@@ -75,7 +86,9 @@ def handle_pdf_processing_executor(
         )
     elif future.cancelled() and future.exception():
         add_Session({"processing": False})
+        logger.error(f"PDF Processing Cancelled: {future.exception()}")
         st.toast("Error Occured During Loading the Docs", icon=":material/error:")
     else:
+        logger.error("PDF Processing Failed")
         add_Session({"processing": False})
         st.toast("Error Occured During Loading the Docs", icon=":material/error:")

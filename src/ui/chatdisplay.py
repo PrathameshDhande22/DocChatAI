@@ -1,7 +1,8 @@
 import streamlit as st
-from langchain.messages import AIMessageChunk, HumanMessage
+from langchain.messages import AIMessageChunk
 from langchain_core.callbacks import UsageMetadataCallbackHandler
 
+from logger import get_logger
 from retrieval_graph.edges import REWRITE_QUESTION
 from retrieval_graph.graph import graph
 from utils import (
@@ -11,22 +12,37 @@ from utils import (
     chatmessagetuple,
 )
 
+logger = get_logger()
 
-def add_message_to_session(message: chatmessagetuple):
+
+def add_message_to_session(message: chatmessagetuple) -> None:
+    """Add the Message to the Streamlit Session to the key "messages"
+
+    Args:
+        message (chatmessagetuple): Chat Message Tuple in the form of ("human",message) or ("ai",message)
+    """
     messages: list[chatmessagetuple] = get_session_state("messages")
     messages.append(message)
     add_Session_Key("messages", messages)
 
 
-def display_chat_box(message: chatmessagetuple):
+def display_chat_box(message: chatmessagetuple) -> None:
+    """Display the Streamlit Chat Message box for "ai" or "human" message
+
+    Args:
+        message (chatmessagetuple): Chat Message Tuple in the form of ("human",message) or ("ai",message)
+    """
     add_message_to_session(message)
     chat_message_box = st.chat_message(message[0])
     chat_message_box.markdown(message[1])
 
 
-def display_ai_chat_box():
+def display_ai_chat_box() -> None:
+    """Display the AI Chat Message box by invoking the Langgraph Graph / Workflow"""
+    logger.info("Invoking the Graph for AI Response")
     try:
         usagehandler = UsageMetadataCallbackHandler()
+
         with st.chat_message("ai"):
             message_placeholder = st.empty()
             full_response = ""
@@ -56,7 +72,9 @@ def display_ai_chat_box():
                             full_response += chunk[1][0].content
                             message_placeholder.markdown(full_response.strip())
             add_message_to_session(("ai", full_response))
-            print(usagehandler.usage_metadata)
+            logger.info(f"Token Usage: {usagehandler.usage_metadata} tokens used")
     except Exception as e:
-        print(e)
         st.error("Some Error Occured while Invoking the Graph / Workflow")
+        logger.error(f"Error in Graph Invocation: {e}")
+        logger.exception(e)
+        message_placeholder.markdown("Sorry, something went wrong.")

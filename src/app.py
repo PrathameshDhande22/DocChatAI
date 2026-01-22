@@ -1,18 +1,32 @@
 from concurrent.futures import ThreadPoolExecutor
+import os
 from dotenv import load_dotenv
 import streamlit as st
 from streamlit.runtime.uploaded_file_manager import UploadedFile
 
 from about import show_info
+from logger import get_logger, setup_logger
 from ui.chatdisplay import display_ai_chat_box, display_chat_box
 from ui.exporter import export_chat_pdf
 from ui.pdfload import handle_pdf_processing_executor
 from ui.worker import get_executor
 from utils import add_Session, get_session_state, initialize_session
 
+setup_logger()
+logger = get_logger()
+
 initialize_session()
+logger.info("Session Initialized")
 load_dotenv()
 executor: ThreadPoolExecutor = get_executor()
+
+
+# initialize the Langsmith
+os.environ["LANGSMITH_API_KEY"] = os.getenv("LANGSMITH_API_KEY")
+os.environ["LANGSMITH_TRACING"] = os.getenv("LANGSMITH_TRACING", "true")
+os.environ["LANGSMITH_PROJECT"] = os.getenv("LANGSMITH_PROJECT", "DocChat AI")
+os.environ["LANGSMITH_ENDPOINT"] = os.getenv("LANGSMITH_ENDPOINT")
+logger.info("Langsmith ENV Initialized")
 
 # set the page layout
 st.set_page_config(
@@ -37,6 +51,11 @@ fileuploaded: list[UploadedFile] = []
 # onclick
 def onprocessclick(fileuploaded: list[UploadedFile]):
     st.session_state.processing = True
+    logger.info(
+        "Processing Started for Uploaded Files Files Uploaded: %s",
+        [f.name for f in fileuploaded],
+        exc_info=True,
+    )
     handle_pdf_processing_executor(executor, fileuploaded)
 
 

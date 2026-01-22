@@ -4,8 +4,10 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib.enums import TA_CENTER
 from reportlab.lib.units import inch
 from reportlab.lib.colors import HexColor
+from logger import get_logger
 from utils import chatmessagetuple
 
+logger = get_logger()
 
 def create_pdf(messages: list[chatmessagetuple], output_path: str = "DocChatAI.pdf") -> str:
     """
@@ -14,7 +16,7 @@ def create_pdf(messages: list[chatmessagetuple], output_path: str = "DocChatAI.p
     :param messages: List of tuples -> [(role, message), ...]
     :param output_path: Output PDF file path
     """
-
+    logger.info(f"Creating PDF at {output_path} with {len(messages)} messages")
     doc = SimpleDocTemplate(
         output_path,
         pagesize=A4,
@@ -70,5 +72,6 @@ def create_pdf(messages: list[chatmessagetuple], output_path: str = "DocChatAI.p
         story.append(Paragraph(message, message_style))
 
     doc.build(story)
+    logger.info(f"PDF created successfully at {output_path}")
     
     return output_path
