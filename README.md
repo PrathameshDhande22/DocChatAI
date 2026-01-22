@@ -124,7 +124,12 @@ If you plan to run the LangGraph development server directly:
     langgraph dev
     ```
 
+## Demo
 
+Here are some screenshots attached
+![Screenshot2](./Images/screenshot2.png)
+
+![Screenshot1](./Images/screenshot1.png)
 
 ## License
 This project is licensed under the MIT License.
