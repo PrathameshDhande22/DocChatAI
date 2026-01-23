@@ -12,7 +12,7 @@ from core.loaders import (
 from core.vectorstore import getVectorStore
 from logger import get_logger
 from ui.models.ProcessDocsResult import ProcessDocsResult
-from utils import add_Session, get_session_state
+from utils import add_Session, add_Session_Key, get_session_state
 
 logger = get_logger()
 
@@ -70,6 +70,10 @@ def handle_pdf_processing_executor(
     executor: ThreadPoolExecutor, fileuploaded: list[UploadedFile]
 ):
     list_docs_for_processing = docs_to_process(fileuploaded)
+    if len(list_docs_for_processing) <= 0:
+        logger.info("No New Documents to Process")
+        add_Session_Key("processing",False)
+        return
     future: Future[ProcessDocsResult] = executor.submit(
         processdocs, list_docs_for_processing
     )
