@@ -131,5 +131,11 @@ Here are some screenshots attached
 
 ![Screenshot1](./Images/screenshot1.png)
 
+## 🎥 Demo Video
+
+[![DocChatAI Demo](https://img.youtube.com/vi/LddjmNicLio/0.jpg)](https://youtu.be/LddjmNicLio)
+
+Click the thumbnail above to watch the full project demo on YouTube.
+
 ## License
 This project is licensed under the MIT License.
